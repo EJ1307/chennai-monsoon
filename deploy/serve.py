@@ -1,4 +1,4 @@
-"""Local preview of the built site/ before it goes to Vercel. Like
+"""Local preview of the website in web/ before it goes to Vercel. Like
 `python -m http.server`, but every reload revalidates, so you always see the latest
 build.
 
@@ -11,7 +11,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8241
-ROOT = os.path.join(HERE, "..", "site")
+ROOT = os.path.join(HERE, "..", "web")
 
 
 class NoCache(http.server.SimpleHTTPRequestHandler):

@@ -1,7 +1,7 @@
 # Chennai northeast monsoon: wet and dry spells.
 # Run with shiny::runApp("app") from the project folder, or open this file in
 # RStudio and press Run App. Files in R/ are loaded automatically first.
-# The same app runs in a web browser through Shinylive: see deploy/build_site.R.
+# The website version for Vercel lives in web/ and is fed by prepare/export_web.R.
 
 suppressPackageStartupMessages({
   library(shiny)

@@ -5,8 +5,15 @@ Chennai's Northeast Monsoon: A Markov Chain Analysis with Extreme-Rainfall Risk"
 It is deliverable 4 of the one-page plan, and every number in it comes from the same
 R functions you can run on their own for the report.
 
-The same app runs two ways: in R on your computer, and as a website on Vercel, where
-Shinylive runs R inside the visitor's browser (no R server needed).
+There are two ways to use it:
+
+- **The R Shiny app** (`app/`) runs in R on your computer, for example from RStudio.
+- **The website** (`web/`) is what Vercel hosts. R works out every result in advance
+  (`prepare/export_web.R`) and saves them in `web/data/`; the page only reads and draws
+  them, so it opens in about a second. Anything that cannot be prepared ahead (a new
+  random season, the slider values, or a month and decade choice that is not in the
+  results) is calculated in the browser by `web/js/stats.js`, which follows the R code
+  step by step.
 
 ## Run it
 
@@ -14,7 +21,7 @@ Shinylive runs R inside the visitor's browser (no R server needed).
 2. Install the packages once:
 
    ```r
-   install.packages(c("shiny", "bslib", "ggplot2", "ggiraph", "withr", "jsonlite", "shinylive"))
+   install.packages(c("shiny", "bslib", "ggplot2", "ggiraph", "withr", "jsonlite"))
    ```
 
 3. From this folder:
@@ -33,28 +40,20 @@ a few seconds. Run that script again after changing the data or anything in `app
 
 ## Host it on Vercel
 
-Vercel only serves static files and has no R, so the app is exported with
-[Shinylive](https://posit-dev.github.io/r-shinylive/): R itself (compiled to
-WebAssembly) runs in the browser, with the app and its packages.
+Vercel serves the `web/` folder as it is (no build step). `vercel.json` already says
+so, so in Vercel: Add New, Project, import this repository, Deploy. Every push to the
+main branch deploys again.
 
-1. Build the site (needs `install.packages("shinylive")` once):
+After changing the data or anything in `app/R`, refresh the website's results before
+you commit:
 
-   ```r
-   # from this folder, in R or with Rscript
-   source("deploy/build_site.R")
-   ```
+```
+Rscript prepare/precompute.R
+Rscript prepare/export_web.R
+```
 
-   This writes `site/`. Commit it: Vercel publishes it exactly as it is and runs no
-   build of its own.
-2. Push this folder to a GitHub repository and import it in Vercel (Add New, Project).
-   `vercel.json` already sets the framework to Other and the output folder to `site`,
-   so the defaults can stay as they are.
-3. Every push to the main branch deploys again. After changing the app, rebuild
-   `site/` (step 1) before you commit.
-
-The first visit downloads R and the packages (about 40 MB), so the page takes
-10 to 30 seconds to start; browsers keep them for later visits. Only `site/` is
-published: the raw data, the scripts and this README stay in the repository.
+To look at the website on your computer first: `python deploy/serve.py`, then open
+http://127.0.0.1:8241/.
 
 ## What is on each page
 
@@ -79,14 +78,22 @@ app/                 the Shiny app
     plots.R          chart style and charts
   data/              clean data written by prepare/prepare_data.R
   www/               styles, favicon and the DM Sans font (SIL Open Font License)
+web/                 the website Vercel publishes
+  index.html         the five pages and the loading screen
+  css/styles.css     the look (same as the Shiny app)
+  js/stats.js        browser maths for anything new, a copy of the R steps
+  js/charts.js       charts (Observable Plot)
+  js/app.js          page logic and text
+  data/              results.json and days.json, written by prepare/export_web.R
+  vendor/            d3 7.9.0 and Observable Plot 0.6.17 (ISC licence)
 prepare/
   download_data.R    downloads the three raw files into data/
   prepare_data.R     builds app/data from the raw downloads (run once)
   precompute.R       runs the slow simulations into app/data/precomputed.rds
+  export_web.R       writes every result the website shows into web/data/
 deploy/
-  build_site.R       exports the app with Shinylive into site/
-site/                the static website Vercel publishes (built, do not edit)
-vercel.json          Vercel settings: no build, publish site/
+  serve.py           local preview of web/
+vercel.json          Vercel settings: no build, publish web/
 analysis/
   results.R          prints every result for the written report
   results.txt        its output
@@ -159,5 +166,5 @@ which leaves 30 seasons: 8 in 1991 to 2001 and 11 in each later decade.
 Rscript prepare/download_data.R
 Rscript prepare/prepare_data.R
 Rscript prepare/precompute.R
-Rscript deploy/build_site.R
+Rscript prepare/export_web.R
 ```
