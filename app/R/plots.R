@@ -225,8 +225,8 @@ plot_returns <- function(curve, observed, record_years, fit_name) {
   ggplot(curve, aes(T)) +
     annotate("rect", xmin = record_years, xmax = Inf, ymin = -Inf, ymax = Inf,
              fill = INK, alpha = 0.035) +
-    annotate("text", x = record_years * 1.08, y = top * 1.02, hjust = 0, vjust = 1,
-             label = "Beyond the record:\nextrapolation", family = FONT, colour = MUTED,
+    annotate("text", x = max(curve$T), y = top * 0.03, hjust = 1, vjust = 0,
+             label = "Beyond\nthe record", family = FONT, colour = MUTED,
              size = 3, lineheight = 0.95) +
     geom_ribbon(aes(ymin = lo, ymax = hi), fill = WET, alpha = 0.14) +
     geom_line(aes(y = level), colour = WET, linewidth = 0.7) +

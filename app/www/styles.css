@@ -262,6 +262,7 @@ ol.audit li::marker { color: var(--muted); font-size: 0.8rem; }
   .picker .shiny-options-group { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px; }
   .picker .radio label { padding: 0.4rem 0.7rem; background: rgba(11, 11, 11, 0.035); }
   .picker .side-note { display: none; }
+  .legend { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.35rem 0.75rem; }
   .facts { gap: 0.5rem; }
   .fact-v { font-size: 1.2rem; }
   .fact-l { font-size: 0.74rem; }
