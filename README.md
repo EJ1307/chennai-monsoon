@@ -90,12 +90,13 @@ vercel.json          Vercel settings: no build, publish site/
 analysis/
   results.R          prints every result for the written report
   results.txt        its output
-data/                raw downloads, kept exactly as downloaded (not in git)
+data/                raw downloads, kept exactly as downloaded
+previews/            screenshots of the app on desktop and phone
 ```
 
 ## Data and audit
 
-Raw files (`Rscript prepare/download_data.R` fetches all three):
+Raw files (already in `data/`; `Rscript prepare/download_data.R` fetches them again):
 
 - OpenCity dataset page: https://data.opencity.in/dataset/chennai-rainfall-data
 - "Chennai Daily Rainfall Data from 1991-2023":

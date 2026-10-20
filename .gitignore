@@ -1,11 +1,3 @@
-# Raw downloads: get them again with  Rscript prepare/download_data.R
-data/raw/
-data/raw-tn/
-data/raw-openmeteo/
-
-# Preview images made while building
-previews/
-
 # R and RStudio
 .Rhistory
 .RData
