@@ -1,0 +1,94 @@
+Seasons used: 30 (2738 days with data)
+
+== Chain by month and decade (wet = 2.5 mm or more) ==
+Oct to Dec All years     p(D>W) 0.164 [0.148, 0.181]  p(W>W) 0.623 [0.589, 0.655]  wet share 0.303  spells wet 2.6 dry 6.1
+Oct to Dec 1991 to 2001  p(D>W) 0.187 [0.154, 0.224]  p(W>W) 0.630 [0.568, 0.688]  wet share 0.335  spells wet 2.7 dry 5.4
+Oct to Dec 2002 to 2012  p(D>W) 0.148 [0.123, 0.176]  p(W>W) 0.640 [0.583, 0.693]  wet share 0.291  spells wet 2.8 dry 6.8
+Oct to Dec 2013 to 2023  p(D>W) 0.165 [0.139, 0.194]  p(W>W) 0.598 [0.540, 0.654]  wet share 0.291  spells wet 2.5 dry 6.1
+October    All years     p(D>W) 0.214 [0.182, 0.249]  p(W>W) 0.595 [0.538, 0.650]  wet share 0.346  spells wet 2.5 dry 4.7
+October    1991 to 2001  p(D>W) 0.262 [0.198, 0.338]  p(W>W) 0.593 [0.491, 0.689]  wet share 0.392  spells wet 2.5 dry 3.8
+October    2002 to 2012  p(D>W) 0.175 [0.129, 0.231]  p(W>W) 0.705 [0.615, 0.782]  wet share 0.372  spells wet 3.4 dry 5.7
+October    2013 to 2023  p(D>W) 0.219 [0.170, 0.277]  p(W>W) 0.462 [0.363, 0.563]  wet share 0.289  spells wet 1.9 dry 4.6
+November   All years     p(D>W) 0.213 [0.180, 0.250]  p(W>W) 0.674 [0.624, 0.721]  wet share 0.396  spells wet 3.1 dry 4.7
+November   1991 to 2001  p(D>W) 0.244 [0.180, 0.323]  p(W>W) 0.676 [0.582, 0.758]  wet share 0.430  spells wet 3.1 dry 4.1
+November   2002 to 2012  p(D>W) 0.192 [0.145, 0.251]  p(W>W) 0.642 [0.553, 0.722]  wet share 0.349  spells wet 2.8 dry 5.2
+November   2013 to 2023  p(D>W) 0.214 [0.161, 0.278]  p(W>W) 0.702 [0.619, 0.774]  wet share 0.418  spells wet 3.4 dry 4.7
+December   All years     p(D>W) 0.091 [0.073, 0.114]  p(W>W) 0.560 [0.484, 0.634]  wet share 0.172  spells wet 2.3 dry 11.0
+December   1991 to 2001  p(D>W) 0.091 [0.058, 0.139]  p(W>W) 0.600 [0.462, 0.724]  wet share 0.185  spells wet 2.5 dry 11.0
+December   2002 to 2012  p(D>W) 0.095 [0.066, 0.135]  p(W>W) 0.509 [0.383, 0.634]  wet share 0.162  spells wet 2.0 dry 10.5
+December   2013 to 2023  p(D>W) 0.087 [0.059, 0.127]  p(W>W) 0.576 [0.449, 0.694]  wet share 0.171  spells wet 2.4 dry 11.5
+
+== H1 independence ==  X2 = 565.6, df 1, p < 0.001, p(W>W) - p(D>W) = 0.459
+== H2 second order ==  X2 = 34.20, df 2, p < 0.001, min expected 49.4
+      n p_wet
+DD 1537 0.142
+WD  302 0.272
+DW  300 0.587
+WW  501 0.653
+== H3 spells (1000 simulated records of 30 seasons, 0.7 secs) ==
+wet: 302 spells, X2 5.0, Monte Carlo p 0.287; 5+ days observed 0.159 (n 48), chain 0.143 [0.111, 0.176]; longest 14
+dry: 323 spells, X2 28.4, Monte Carlo p < 0.001; 15+ days observed 0.093 (n 30), chain 0.070 [0.048, 0.094]; longest 39
+
+== H4 decades ==  X2 = 4.35, df 4, p 0.361  (from dry p 0.204, from wet p 0.558)
+        decade   p01 p01_lo p01_hi   p11 p11_lo p11_hi
+1 1991 to 2001 0.187  0.154  0.224 0.630  0.568  0.688
+2 2002 to 2012 0.148  0.123  0.176 0.640  0.583  0.693
+3 2013 to 2023 0.165  0.139  0.194 0.598  0.540  0.654
+
+== H5 heavy days ==  95th percentile 100.7 mm; X2 = 0.57, df 2, p 0.751; ANOVA F = 0.82, p 0.441
+        decade  share     lo     hi heavy wet geo_mean
+1 1991 to 2001 0.0447 0.0251 0.0783    11 246     17.0
+2 2002 to 2012 0.0479 0.0288 0.0789    14 292     18.7
+3 2013 to 2023 0.0582 0.0367 0.0912    17 292     16.8
+
+== Amount fits (830 wet days) ==  best AIC: weibull, best tail: weibull
+               dist      name                    params loglik  aic tail_error
+weibull     weibull   Weibull shape 0.69, scale 18.8 mm  -3552 7108    0.05023
+gamma         gamma     Gamma shape 0.40, scale 51.9 mm  -3553 7110    0.07277
+lognormal lognormal Lognormal  meanlog 2.68, sdlog 1.22  -3562 7127    0.20784
+          delta_aic
+weibull       0.000
+gamma         1.831
+lognormal    19.160
+lambda (wet days per season) = 27.9
+Gamma return levels (mm, 90% interval):
+    T level    lo    hi
+1   2 147.1 131.7 163.2
+2   5 188.3 168.2 208.8
+3  10 220.2 196.0 244.0
+4  25 262.9 233.5 291.8
+5  50 295.7 262.2 329.1
+6 100 328.7 290.9 366.0
+Lognormal return levels (mm, 90% interval):
+    T level    lo     hi
+1   2 194.1 173.3  214.9
+2   5 295.8 263.7  328.7
+3  10 395.2 349.5  439.9
+4  25 562.7 496.4  627.0
+5  50 721.9 631.7  808.7
+6 100 914.1 794.4 1030.9
+Weibull return levels (mm, 90% interval):
+    T level    lo    hi
+1   2 153.2 136.1 171.0
+2   5 202.9 178.8 226.3
+3  10 243.3 212.6 273.2
+4  25 299.9 262.2 339.1
+5  50 345.2 298.2 390.9
+6 100 392.3 336.0 446.9
+(fits and bootstrap took 9.3 secs)
+largest observed wet days: 291.5, 272.5, 246.5, 243.3, 233.5
+
+== Decision ==
+          state                              after p_wet p_heavy observed    n
+1  Two dry days                 after two dry days 0.142 0.00748  0.00195 1537
+2 Wet, then dry after a wet day and then a dry one 0.272 0.01425  0.00993  302
+3 Dry, then wet after a dry day and then a wet one 0.587 0.03078  0.04000  300
+4  Two wet days                 after two wet days 0.653 0.03424  0.04790  501
+  p_heavy_if_wet
+1         0.0525
+2         0.0525
+3         0.0525
+4         0.0525
+buffer at risk 0.05: chain 29 days, observed 28 days
+buffer at risk 0.10: chain 25 days, observed 25 days
+buffer at risk 0.20: chain 21 days, observed 23 days

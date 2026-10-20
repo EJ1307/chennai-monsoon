@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chennai monsoon spells</title>
+    <meta name="description" content="Wet and dry spells of Chennai's northeast monsoon, 1991 to 2023: a Markov chain analysis with extreme-rainfall risk, built in R Shiny." />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <style>
+      html, body { background: #f6f5f1; }
+      #starting { position: fixed; left: 0; right: 0; top: calc(50% + 64px); z-index: 10;
+        text-align: center; font: 400 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: #52514e; padding: 0 24px; transition: opacity .3s ease; }
+      #starting b { display: block; color: #0b0b0b; font-weight: 500; font-size: 17px; margin-bottom: 2px; }
+      #starting.done { opacity: 0; pointer-events: none; }
+    </style>
+    <script
+      src="./shinylive/load-shinylive-sw.js"
+      type="module"
+    ></script>
+    <script type="module">
+      import { runExportedApp } from "./shinylive/shinylive.js";
+      runExportedApp({
+        id: "root",
+        appEngine: "r",
+        relPath: "",
+      });
+    </script>
+    <link rel="stylesheet" href="./shinylive/style-resets.css" />
+    <link rel="stylesheet" href="./shinylive/shinylive.css" />
+    
+  </head>
+  <body>
+    
+    <div style="height: 100vh; width: 100vw" id="root"></div>
+    <div id="starting"><b>Chennai monsoon spells</b>Starting R in your browser. The first visit takes about 20 seconds; after that it opens faster.</div>
+    <script>
+      // Hide the note once the Shiny app inside the frame is connected
+      const startedCheck = setInterval(() => {
+        const frame = document.querySelector("#root iframe");
+        let ready = false;
+        try { ready = !!(frame && frame.contentWindow.Shiny && frame.contentWindow.Shiny.shinyapp
+          && frame.contentWindow.Shiny.shinyapp.isConnected()); } catch (e) {}
+        if (ready) { document.getElementById("starting").classList.add("done"); clearInterval(startedCheck); }
+      }, 400);
+    </script>
+    
+  </body>
+</html>
