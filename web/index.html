@@ -29,7 +29,7 @@
     #loading .note { font-size: 14px; color: #52514e; }
     @media (prefers-reduced-motion: reduce) { #loading .drop, #loading .bar span { animation: none; } }
   </style>
-  <link rel="stylesheet" href="css/styles.css?v=2" />
+  <link rel="stylesheet" href="css/styles.css?v=3" />
 </head>
 <body>
   <div id="loading" role="status" aria-live="polite">
@@ -104,60 +104,57 @@
     </section>
 
     <!-- Predict ----------------------------------------------------------------- -->
-    <section class="page with-side" id="page-predict" aria-labelledby="h-predict" hidden>
-      <aside class="picker" aria-label="Choose a day">
-        <div class="date-pick">
-          <label class="pick-label" for="day">Day</label>
+    <section class="page" id="page-predict" aria-labelledby="h-predict" hidden>
+      <div class="page-head">
+        <h1 id="h-predict">Will it rain on the day?</h1>
+        <p class="lede" id="lede-predict"></p>
+      </div>
+      <div class="ask">
+        <div class="ask-day">
+          <label class="ask-label" for="day">Pick a day</label>
           <input type="date" id="day" value="2027-10-15" min="2026-10-01" max="2030-12-31" required />
         </div>
-        <fieldset class="choice" id="pick-history">
-          <legend>The two days before</legend>
+        <fieldset class="ask-hist" id="pick-history">
+          <legend class="ask-label">The two days before</legend>
         </fieldset>
-        <p class="side-note">Any day, 1 October to 31 December.</p>
-      </aside>
-      <div class="main">
-        <div class="page-head">
-          <h1 id="h-predict">Will it rain on the day?</h1>
-          <p class="lede" id="lede-predict"></p>
+      </div>
+      <div class="grid g-5-7">
+        <div class="card"><h2 class="card-title">The forecast</h2><div id="forecast-box"></div></div>
+        <div class="card">
+          <h2 class="card-title">Through the season</h2>
+          <div class="legend" id="forecast-legend"></div>
+          <div class="chart fill" id="chart-forecast"></div>
+          <p class="caption" id="forecast-caption"></p>
         </div>
-        <div class="grid g-5-7">
-          <div class="card"><h2 class="card-title">The forecast</h2><div id="forecast-box"></div></div>
-          <div class="card">
-            <h2 class="card-title">Through the season</h2>
-            <div class="legend" id="forecast-legend"></div>
-            <div class="chart fill" id="chart-forecast"></div>
-            <p class="caption" id="forecast-caption"></p>
+      </div>
+      <div class="card">
+        <h2 class="card-title">The whole season</h2>
+        <div id="outlook"></div>
+      </div>
+      <div class="card">
+        <h2 class="card-title">How often is it right?</h2>
+        <div class="grid g-7-5 inner">
+          <div>
+            <div class="slider">
+              <label for="cut">Call it wet above</label>
+              <output id="cut-out" for="cut"></output>
+              <input type="range" id="cut" min="0.05" max="0.95" step="0.01" value="0.3" />
+            </div>
+            <div id="check-table"></div>
+          </div>
+          <div>
+            <div class="legend">
+              <span class="li"><span class="key key-dot dry"></span>Long range</span>
+              <span class="li"><span class="key key-dot wet"></span>Next day</span>
+            </div>
+            <div class="chart" id="chart-reliability"></div>
+            <p class="caption">On the dashed line, it rains as often as forecast.</p>
           </div>
         </div>
-        <div class="card">
-          <h2 class="card-title">The whole season</h2>
-          <div id="outlook"></div>
-        </div>
-        <div class="card">
-          <h2 class="card-title">How often is it right?</h2>
-          <div class="grid g-7-5 inner">
-            <div>
-              <div class="slider">
-                <label for="cut">Call it wet above</label>
-                <output id="cut-out" for="cut"></output>
-                <input type="range" id="cut" min="0.05" max="0.95" step="0.01" value="0.3" />
-              </div>
-              <div id="check-table"></div>
-            </div>
-            <div>
-              <div class="legend">
-                <span class="li"><span class="key key-dot dry"></span>Long range</span>
-                <span class="li"><span class="key key-dot wet"></span>Next day</span>
-              </div>
-              <div class="chart" id="chart-reliability"></div>
-              <p class="caption">On the dashed line, it rains as often as forecast.</p>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <h2 class="card-title">Which model</h2>
-          <div id="model-table"></div>
-        </div>
+      </div>
+      <div class="card">
+        <h2 class="card-title">Which model</h2>
+        <div id="model-table"></div>
       </div>
     </section>
 
@@ -293,6 +290,6 @@
   <script src="vendor/plot.umd.min.js" defer></script>
   <script src="js/stats.js?v=1" defer></script>
   <script src="js/charts.js?v=2" defer></script>
-  <script src="js/app.js?v=3" defer></script>
+  <script src="js/app.js?v=4" defer></script>
 </body>
 </html>

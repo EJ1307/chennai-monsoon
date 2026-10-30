@@ -159,7 +159,7 @@
     $("forecast-box").innerHTML = `<p class="forecast-date">${WEEKDAYS[k.t.getUTCDay()]} ${k.t.getUTCDate()} ${Fmt.dosDate(k.dos, k.year).split(" ").slice(1).join(" ")}</p>
       <div class="facts two">
         <div><div class="fact-v">${Fmt.pct(f.p)}</div><div class="fact-l">chance of a wet day</div></div>
-        <div><div class="fact-v">${Fmt.pct(f.p * P.p_heavy_if_wet, 1)}</div><div class="fact-l">chance of more than ${Fmt.num(P.heavy_mm, 0)} mm</div></div>
+        <div><div class="fact-v">${Fmt.pct(f.p * P.p_heavy_if_wet, 1)}</div><div class="fact-l">chance of over ${Fmt.num(P.heavy_mm, 0)}&nbsp;mm</div></div>
       </div>
       <p class="test-s">95% range ${Fmt.pct(f.lo)} to ${Fmt.pct(f.hi)}</p>
       <p class="why-head">Why</p>
