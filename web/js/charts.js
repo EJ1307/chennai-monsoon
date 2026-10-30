@@ -295,6 +295,63 @@ const Charts = (() => {
     });
   }
 
+  // Chance of a wet day through the season: the season model with its 95% band, the
+  // share of real seasons wet on each date, the chosen history, and the chosen day
+  function forecast(w, any, hist, byDay, dos, h) {
+    const yTicks = [0, 0.2, 0.4, 0.6, 0.8, 1];
+    const starts = { 1: "1 Oct", 32: "1 Nov", 62: "1 Dec" };
+    const pick = (hist || any).find((r) => r.dos === dos);
+    const right = dos > 70;
+    return Plot.plot({
+      ...base(w, h || (phone(w) ? 250 : 290), { marginBottom: 28 }),
+      x: { domain: [0, 93] },
+      y: { domain: [0, 1] },
+      marks: [
+        gridY(yTicks),
+        axisY(yTicks, { tickFormat: (v) => Fmt.pct(v), label: "Chance of a wet day" }),
+        axisX([1, 32, 62], { tickFormat: (t) => starts[t], label: null }),
+        Plot.areaY(any, { x: "dos", y1: "lo", y2: "hi", fill: C.wetLt, fillOpacity: 0.55 }),
+        Plot.dot(byDay, { x: "dos", y: "share", r: 1.8, fill: C.muted }),
+        Plot.lineY(any, { x: "dos", y: "p", stroke: C.wet, strokeWidth: 2 }),
+        hist ? Plot.lineY(hist, { x: "dos", y: "p", stroke: C.ink, strokeWidth: 1.4, strokeDasharray: "4,3" }) : null,
+        Plot.ruleX([dos], { stroke: C.ink, strokeWidth: 0.8 }),
+        Plot.dot([pick], { x: "dos", y: "p", r: 4.2, fill: C.ink }),
+        Plot.text([pick], { x: "dos", y: "p", text: (r) => Fmt.pct(r.p), dx: right ? -8 : 8, dy: -11, textAnchor: right ? "end" : "start", fill: C.ink, fontSize: 12 }),
+        Plot.tip(any, Plot.pointerX({
+          x: "dos", y: "p",
+          title: (r) => { const o = byDay[r.dos - 1]; return `${Fmt.dosDate(r.dos)}\nChance of a wet day: ${Fmt.pct(r.p)}\nRecord: ${o.wet} of ${o.n} seasons wet`; },
+          ...TIP,
+        })),
+      ],
+    });
+  }
+
+  // Reliability of the backtest forecasts: when they said p, how often it rained
+  function reliability(w, rel) {
+    const ticks = [0, 0.25, 0.5, 0.75, 1];
+    const col = (r) => (r.key === "season" ? C.dry : C.wet);
+    const name = (r) => (r.key === "season" ? "Long range" : "Next day");
+    return Plot.plot({
+      ...base(w, Math.min(w, phone(w) ? 280 : 310)),
+      x: { domain: [0, 1] },
+      y: { domain: [0, 1] },
+      r: { range: [2, 6.5] },
+      marks: [
+        gridY(ticks), gridX(ticks),
+        axisY(ticks, { tickFormat: (v) => Fmt.pct(v), label: "Days that were wet" }),
+        axisX(ticks, { tickFormat: (v) => Fmt.pct(v), label: "Forecast chance" }),
+        Plot.line([[0, 0], [1, 1]], { stroke: C.axis, strokeDasharray: "3,3" }),
+        Plot.ruleX(rel, { x: "predicted", y1: "lo", y2: "hi", stroke: col, strokeWidth: 2, strokeOpacity: 0.35 }),
+        Plot.line(rel, { x: "predicted", y: "observed", z: "key", stroke: col, strokeWidth: 1.4 }),
+        Plot.dot(rel, {
+          x: "predicted", y: "observed", r: "n", fill: col,
+          title: (r) => `${name(r)}\nSaid ${Fmt.pct(r.predicted)} on average\nWet on ${Fmt.pct(r.observed)} of ${r.n} days`,
+          tip: TIP,
+        }),
+      ],
+    });
+  }
+
   // Every October to December day of every season
   function calendar(w, days, labels) {
     const seasons = [...new Set(days.map((d) => d.season))].sort((a, b) => a - b);
@@ -317,5 +374,5 @@ const Charts = (() => {
     });
   }
 
-  return { C, spells, season, totals, decadeChain, heavyShare, qq, returns, alert, buffer, calendar };
+  return { C, spells, season, totals, decadeChain, heavyShare, qq, returns, alert, buffer, forecast, reliability, calendar };
 })();

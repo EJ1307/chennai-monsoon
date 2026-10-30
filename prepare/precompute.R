@@ -28,7 +28,12 @@ returns <- lapply(setNames(names(DIST_NAMES), names(DIST_NAMES)),
 # Longest dry spell per season, record against 20,000 simulated seasons
 dry_max <- longest_dry(ond, fit_chain(ond))
 
+# Forecasts: 20,000 seasons from the seasonal chain, and the leave-one-season-out check
+models  <- choose_models(model_rows(days))
+outlook <- season_outlook(days, models, fits$fits[[fits$best_aic]])
+checks  <- score_backtest(backtest(days, models))
+
 saveRDS(list(spells = spells, fits = fits, returns = returns, dry_max = dry_max,
-             made = Sys.time()),
+             outlook = outlook, checks = checks, made = Sys.time()),
         "app/data/precomputed.rds")
 cat("Saved app/data/precomputed.rds in", format(round(Sys.time() - t0, 1)), "\n")

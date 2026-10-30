@@ -287,6 +287,59 @@ plot_buffer <- function(ld, risk, k_chain) {
     theme_monsoon()
 }
 
+# Chance of a wet day through the season: the season model with its 95% band, the
+# share of real seasons wet on each date, the chosen history, and the chosen day
+plot_forecast <- function(ft, obs, dos, history, year) {
+  any <- ft[ft$history == "any", ]
+  any$date <- dos_date(any$dos, year)
+  any$tip <- sprintf("<b>%s</b><br>Chance of a wet day: %s<br>Record: %d of %d seasons wet",
+                     fmt_date(any$date, FALSE), pct(any$p), obs$wet, obs$n)
+  pick <- ft[ft$history == history & ft$dos == dos, ]
+  month_starts <- c("1 Oct" = 1, "1 Nov" = 32, "1 Dec" = 62)
+  p <- ggplot(any, aes(dos)) +
+    geom_ribbon(aes(ymin = lo, ymax = hi), fill = WET_LT, alpha = 0.55) +
+    geom_point(data = obs, aes(dos, share), colour = MUTED, size = 1.1) +
+    geom_line(aes(y = p), colour = WET, linewidth = 0.8)
+  if (history != "any") {
+    h <- ft[ft$history == history, ]
+    p <- p + geom_line(data = h, aes(dos, p), colour = INK, linewidth = 0.6, linetype = "22")
+  }
+  p +
+    geom_point_interactive(aes(y = p, tooltip = tip, data_id = dos), size = 3.5,
+                           colour = WET, alpha = 0.01) +
+    geom_vline(xintercept = dos, colour = INK, linewidth = 0.35) +
+    annotate("point", x = dos, y = pick$p, colour = INK, size = 2.8) +
+    annotate("text", x = dos, y = pick$p, label = pct(pick$p),
+             hjust = if (dos > 70) 1.25 else -0.25, vjust = -0.6, family = FONT, size = 3.4,
+             colour = INK) +
+    scale_y_continuous(limits = c(0, max(1, max(ft$hi))), labels = function(b) pct(b),
+                       breaks = seq(0, 1, 0.2)) +
+    scale_x_continuous(breaks = month_starts, labels = names(month_starts),
+                       expand = expansion(add = 1)) +
+    labs(x = NULL, y = "Chance of a wet day") +
+    theme_monsoon()
+}
+
+# Reliability of the backtest forecasts: when they said p, how often it rained
+plot_reliability <- function(rel) {
+  d <- rel
+  d$name <- ifelse(d$key == "season", "Long range", "Next day")
+  d$tip <- sprintf("<b>%s</b><br>Said %s on average<br>Wet on %s of %d days",
+                   d$name, pct(d$predicted), pct(d$observed), d$n)
+  ggplot(d, aes(predicted, observed, colour = key)) +
+    geom_abline(slope = 1, intercept = 0, colour = AXIS, linetype = "22") +
+    geom_linerange(aes(ymin = lo, ymax = hi), linewidth = 0.5, alpha = 0.5) +
+    geom_line(linewidth = 0.6) +
+    geom_point_interactive(aes(tooltip = tip, data_id = paste(key, predicted), size = n)) +
+    scale_colour_manual(values = c(season = DRY, chain = WET)) +
+    scale_size_area(max_size = 4.5) +
+    scale_x_continuous(limits = c(0, 1), labels = function(b) pct(b)) +
+    scale_y_continuous(limits = c(0, 1), labels = function(b) pct(b)) +
+    coord_equal() +
+    labs(x = "Forecast chance", y = "Days that were wet") +
+    theme_monsoon()
+}
+
 # Every October to December day of every season
 plot_calendar <- function(days) {
   d <- days

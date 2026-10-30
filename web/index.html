@@ -29,7 +29,7 @@
     #loading .note { font-size: 14px; color: #52514e; }
     @media (prefers-reduced-motion: reduce) { #loading .drop, #loading .bar span { animation: none; } }
   </style>
-  <link rel="stylesheet" href="css/styles.css?v=1" />
+  <link rel="stylesheet" href="css/styles.css?v=2" />
 </head>
 <body>
   <div id="loading" role="status" aria-live="polite">
@@ -49,6 +49,7 @@
       </button>
       <nav class="nav" id="nav" aria-label="Pages">
         <a href="#wet-and-dry-days" data-page="wet">Wet and dry days</a>
+        <a href="#predict" data-page="predict">Predict</a>
         <a href="#decades" data-page="decades">Decades</a>
         <a href="#extremes" data-page="extremes">Extremes</a>
         <a href="#decision" data-page="decision">Decision</a>
@@ -68,7 +69,7 @@
         <fieldset class="choice" id="pick-decade">
           <legend>Decade</legend>
         </fieldset>
-        <p class="side-note">Nungambakkam (IMD). A day is wet with 2.5 mm of rain or more.</p>
+        <p class="side-note">Wet day: 2.5 mm or more.</p>
       </aside>
       <div class="main">
         <div class="page-head">
@@ -80,10 +81,10 @@
           <div class="card"><h2 class="card-title">What the chain says</h2><div id="chain-facts"></div></div>
         </div>
         <div class="card">
-          <h2 class="card-title">Spell lengths: real seasons against the chain</h2>
+          <h2 class="card-title">Spell lengths, real vs chain</h2>
           <div class="legend">
             <span class="li"><span class="key key-dot wet"></span><span class="key key-dot dry"></span>Observed</span>
-            <span class="li"><span class="key key-line"></span>Chain, with its 90% range</span>
+            <span class="li"><span class="key key-line"></span>Chain, 90% range</span>
           </div>
           <div class="grid g-6-6 inner">
             <div class="chart" id="chart-spell-wet"></div>
@@ -102,6 +103,64 @@
       </div>
     </section>
 
+    <!-- Predict ----------------------------------------------------------------- -->
+    <section class="page with-side" id="page-predict" aria-labelledby="h-predict" hidden>
+      <aside class="picker" aria-label="Choose a day">
+        <div class="date-pick">
+          <label class="pick-label" for="day">Day</label>
+          <input type="date" id="day" value="2027-10-15" min="2026-10-01" max="2030-12-31" required />
+        </div>
+        <fieldset class="choice" id="pick-history">
+          <legend>The two days before</legend>
+        </fieldset>
+        <p class="side-note">Any day, 1 October to 31 December.</p>
+      </aside>
+      <div class="main">
+        <div class="page-head">
+          <h1 id="h-predict">Will it rain on the day?</h1>
+          <p class="lede" id="lede-predict"></p>
+        </div>
+        <div class="grid g-5-7">
+          <div class="card"><h2 class="card-title">The forecast</h2><div id="forecast-box"></div></div>
+          <div class="card">
+            <h2 class="card-title">Through the season</h2>
+            <div class="legend" id="forecast-legend"></div>
+            <div class="chart fill" id="chart-forecast"></div>
+            <p class="caption" id="forecast-caption"></p>
+          </div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">The whole season</h2>
+          <div id="outlook"></div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">How often is it right?</h2>
+          <div class="grid g-7-5 inner">
+            <div>
+              <div class="slider">
+                <label for="cut">Call it wet above</label>
+                <output id="cut-out" for="cut"></output>
+                <input type="range" id="cut" min="0.05" max="0.95" step="0.01" value="0.3" />
+              </div>
+              <div id="check-table"></div>
+            </div>
+            <div>
+              <div class="legend">
+                <span class="li"><span class="key key-dot dry"></span>Long range</span>
+                <span class="li"><span class="key key-dot wet"></span>Next day</span>
+              </div>
+              <div class="chart" id="chart-reliability"></div>
+              <p class="caption">On the dashed line, it rains as often as forecast.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">Which model</h2>
+          <div id="model-table"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- Decades ----------------------------------------------------------------- -->
     <section class="page" id="page-decades" aria-labelledby="h-decades" hidden>
       <div class="page-head">
@@ -111,7 +170,7 @@
       <div class="card">
         <h2 class="card-title">Rain in each season</h2>
         <div class="chart" id="chart-totals"></div>
-        <p class="caption">October to December totals at Nungambakkam. Grey seasons have a missing month and are not used.</p>
+        <p class="caption">Grey: a missing month, not used.</p>
       </div>
       <div class="grid g-6-6">
         <div class="card">
@@ -141,12 +200,11 @@
         <div class="grid g-5-7 inner">
           <div>
             <div id="fit-table"></div>
-            <p class="caption">Fitted to the amounts of all wet days (2.5 mm or more), October to December, with the 2.5 mm cut-off built into the likelihood.</p>
           </div>
           <div>
             <div class="legend" id="qq-legend"></div>
             <div class="chart" id="chart-qq"></div>
-            <p class="caption">Upper half of the wet days. On the dashed line, fitted and observed amounts agree.</p>
+            <p class="caption">On the dashed line, fit and record agree.</p>
           </div>
         </div>
       </div>
@@ -156,7 +214,7 @@
           <div class="chart" id="chart-returns"></div>
           <div id="return-table"></div>
         </div>
-        <p class="caption">T(x) is about 1 / (&lambda; [1 &minus; F(x)]) years, where &lambda; is the mean number of wet days per season. Ranges come from resampling whole seasons 400 times.</p>
+        <p class="caption">T(x) = 1 / (&lambda; [1 &minus; F(x)]). Ranges: 400 season resamples.</p>
       </div>
     </section>
 
@@ -179,7 +237,7 @@
             <output id="cl-out" for="cl"></output>
             <input type="range" id="cl" min="0.002" max="0.06" step="0.001" value="0.02" />
           </div>
-          <p class="side-note">C is the cost of acting on an alert. L is the loss when heavy rain arrives without one. Alert when the chance of heavy rain is above C/L.</p>
+          <p class="side-note">C: cost of acting. L: loss without an alert. Alert when the chance is above C/L.</p>
           <div id="alert-rule"></div>
         </div>
       </div>
@@ -192,7 +250,7 @@
         <div class="card">
           <h2 class="card-title">Buffer days</h2>
           <div class="slider">
-            <label for="risk">Accepted risk of a longer dry spell</label>
+            <label for="risk">Risk of a longer dry spell</label>
             <output id="risk-out" for="risk"></output>
             <input type="range" id="risk" min="0.01" max="0.5" step="0.01" value="0.1" />
           </div>
@@ -205,12 +263,12 @@
     <section class="page" id="page-data" aria-labelledby="h-data" hidden>
       <div class="page-head">
         <h1 id="h-data">Where the numbers come from</h1>
-        <p class="lede">Daily rain at Nungambakkam from the OpenCity Chennai rainfall dataset (state gauge records credited to TNDMA, dataset credited to IMD). The file lists rainy days only, so every gap was checked before any modelling.</p>
+        <p class="lede">Daily rain at Nungambakkam, from the OpenCity Chennai dataset (IMD, TNDMA). Every gap was checked before modelling.</p>
       </div>
       <div class="card">
         <div class="card-head">
-          <h2 class="card-title">Rules fixed before modelling</h2>
-          <a class="btn btn-outline" id="download" href="#" download="nungambakkam_oct_dec_1991_2023.csv">Download the clean data</a>
+          <h2 class="card-title">Rules</h2>
+          <a class="btn btn-outline" id="download" href="#" download="nungambakkam_oct_dec_1991_2023.csv">Download data</a>
         </div>
         <div id="audit-rules"></div>
       </div>
@@ -218,14 +276,14 @@
         <h2 class="card-title">Every October to December day</h2>
         <div class="legend">
           <span class="li"><span class="key key-sq wet"></span>Wet</span>
-          <span class="li"><span class="key key-sq light"></span>Light rain, under 2.5 mm</span>
+          <span class="li"><span class="key key-sq light"></span>Under 2.5 mm</span>
           <span class="li"><span class="key key-sq dry"></span>Dry</span>
           <span class="li"><span class="key key-sq missing"></span>Missing</span>
         </div>
         <div class="chart" id="chart-calendar"></div>
       </div>
       <div class="card">
-        <h2 class="card-title">What the audit found</h2>
+        <h2 class="card-title">What the checks found</h2>
         <div id="audit-found"></div>
       </div>
     </section>
@@ -234,7 +292,7 @@
   <script src="vendor/d3.min.js" defer></script>
   <script src="vendor/plot.umd.min.js" defer></script>
   <script src="js/stats.js?v=1" defer></script>
-  <script src="js/charts.js?v=1" defer></script>
-  <script src="js/app.js?v=1" defer></script>
+  <script src="js/charts.js?v=2" defer></script>
+  <script src="js/app.js?v=3" defer></script>
 </body>
 </html>

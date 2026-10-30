@@ -81,7 +81,11 @@ h2_all    <- test_h2(ond)
 best_fit  <- fits$fits[[fits$best_aic]]
 alert_tab <- alert_states(ond, chain_all, h2_all, best_fit, h5$q95, h2_all$p < 0.05)
 
-# 5. Audit ----------------------------------------------------------------------------------
+# 5. Predict ---------------------------------------------------------------------------------
+models    <- choose_models(model_rows(days))
+forecasts <- forecast_table(days, models)
+
+# 6. Audit ----------------------------------------------------------------------------------
 missing_by_decade <- tapply(is.na(days$rain_mm), days$decade, sum)
 
 results <- list(
@@ -115,6 +119,17 @@ results <- list(
     second_order = h2_all$p < 0.05,
     dry_max = pre$dry_max$curve,
     dry_fit = pre$spells[[spell_key("Oct to Dec", "All years")]]$dry$p_mc >= 0.05
+  ),
+  predict = list(
+    forecasts = forecasts, by_day = observed_by_day(days),
+    k = models$k, best_chain = models$best_chain, n_rows = nrow(model_rows(days)),
+    models = models$table[, c("key", "name", "rhs", "df", "loglik", "aic", "delta_aic", "lrt_p")],
+    trend_season = models$trend_season, trend_chain = models$trend_chain,
+    peak_dos = forecasts$dos[forecasts$history == "any"][which.max(forecasts$p[forecasts$history == "any"])],
+    heavy_mm = h5$q95, p_heavy_if_wet = wet_exceed(best_fit, h5$q95),
+    histories = as.list(HISTORY_LABELS), after = as.list(HISTORY_AFTER),
+    outlook = pre$outlook$table, n_sim = pre$outlook$n_sim,
+    checks = pre$checks
   ),
   audit = list(
     facts = audit$facts,

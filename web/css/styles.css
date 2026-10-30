@@ -100,6 +100,10 @@ button, input { font: inherit; color: inherit; }
   font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted);
   font-weight: 500; margin-bottom: 0.4rem; padding: 0;
 }
+.pick-label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 500; margin-bottom: 0.4rem; }
+.date-pick { margin: 0 0 1.25rem; }
+.date-pick input { width: 100%; font: inherit; font-size: 0.92rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0.45rem 0.7rem; }
+.date-pick input:focus-visible { outline: 2px solid var(--wet); outline-offset: 1px; }
 .choice .options { display: flex; flex-direction: column; gap: 2px; }
 .choice label { display: flex; align-items: center; padding: 0.45rem 0.7rem; border-radius: 10px; cursor: pointer; color: var(--ink-2); font-size: 0.92rem; transition: background 0.15s ease, color 0.15s ease; }
 .choice input { position: absolute; opacity: 0; pointer-events: none; }
@@ -140,6 +144,15 @@ button, input { font: inherit; color: inherit; }
 .test-tag { font-size: 0.68rem; font-weight: 500; color: var(--wet); background: rgba(42, 120, 214, 0.1); border-radius: 6px; padding: 0.1rem 0.4rem; letter-spacing: 0.03em; }
 .test-a { margin: 0.25rem 0 0.15rem; font-size: 0.9rem; line-height: 1.5; }
 .test-s { color: var(--muted); font-size: 0.8rem; }
+
+/* Forecast ------------------------------------------------------------------------- */
+.facts.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.forecast-date { font-size: 0.9rem; font-weight: 500; margin: 0 0 0.75rem; }
+.why-head { font-weight: 500; font-size: 0.93rem; margin: 0.9rem 0 0.2rem; }
+.why { margin: 0; padding-left: 1.1rem; font-size: 0.88rem; line-height: 1.5; }
+.why li + li { margin-top: 0.4rem; }
+.key-line.wet { background: linear-gradient(var(--wet), var(--wet)) center / 100% 2px no-repeat, rgba(42, 120, 214, 0.18); }
+.key-dash { width: 20px; height: 2px; background: repeating-linear-gradient(90deg, var(--ink) 0 4px, transparent 4px 7px); }
 
 /* Legends and verdicts ------------------------------------------------------------- */
 .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 1.1rem; font-size: 0.8rem; color: var(--ink-2); }
