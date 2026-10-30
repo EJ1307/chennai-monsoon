@@ -269,8 +269,8 @@ const Charts = (() => {
     });
   }
 
-  // P(longest dry spell in a season > k): the chain against the record
-  function buffer(w, curve, risk, kChain, h) {
+  // P(longest dry spell in a season > k): the model against the record
+  function buffer(w, curve, risk, kChain, h, col = "chain") {
     const maxK = Math.max(...curve.map((r) => r.k));
     const yTicks = [0, 0.25, 0.5, 0.75, 1];
     return Plot.plot({
@@ -283,12 +283,12 @@ const Charts = (() => {
         axisX(undefined, { label: "Buffer, days without useful rain", ticks: phone(w) ? 5 : 8 }),
         Plot.ruleY([risk], { stroke: C.ink, strokeDasharray: "3,3" }),
         Plot.line(curve, { x: "k", y: "observed", stroke: C.dry, strokeWidth: 1.6, curve: "step-after" }),
-        Plot.line(curve, { x: "k", y: "chain", stroke: C.ink2, strokeWidth: 1.6 }),
+        Plot.line(curve, { x: "k", y: col, stroke: C.ink2, strokeWidth: 1.6 }),
         Plot.dot([{ k: kChain, y: risk }], { x: "k", y: "y", r: 4, fill: C.ink }),
         Plot.text([{ k: kChain, y: risk }], { x: "k", y: "y", text: () => Fmt.plural(kChain, "day"), dx: 8, dy: -10, textAnchor: "start", fill: C.ink, fontSize: 12 }),
         Plot.tip(curve, Plot.pointerX({
-          x: "k", y: "chain",
-          title: (r) => `Longest dry spell over ${r.k} days\nChain: ${Fmt.pct(r.chain, 1)} of seasons\nRecord: ${Fmt.pct(r.observed)} of seasons`,
+          x: "k", y: col,
+          title: (r) => `Longest dry spell over ${r.k} days\nModel: ${Fmt.pct(r[col], 1)} of seasons\nRecord: ${Fmt.pct(r.observed)} of seasons`,
           ...TIP,
         })),
       ],

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chennai monsoon site audit</title>
+<style>
+  :root { --ink: #0b0b0b; --ink2: #52514e; --muted: #8a8984; --line: rgba(11,11,11,.1); --bg: #f6f5f1; --card: #fff;
+    --blue: #2a78d6; --red: #c0392b; --amber: #b7791f; --green: #2f855a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.6 "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 2rem; font-weight: 500; letter-spacing: -.02em; line-height: 1.15; margin: 0 0 6px; }
+  h2 { font-size: 1.25rem; font-weight: 500; letter-spacing: -.01em; margin: 40px 0 12px; }
+  h3 { font-size: 1rem; font-weight: 500; margin: 22px 0 8px; }
+  p { margin: 0 0 10px; }
+  .sub { color: var(--ink2); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin: 12px 0; }
+  .verdict { border-left: 4px solid var(--blue); }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  th { text-align: left; font-weight: 500; color: var(--muted); font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; padding: 9px 10px; border-bottom: 1px solid var(--line); background: #fbfaf7; }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  .wrap { overflow-x: auto; margin: 10px 0; }
+  .tag { display: inline-block; font-size: .72rem; font-weight: 500; border-radius: 6px; padding: 1px 7px; white-space: nowrap; }
+  .full { background: rgba(47,133,90,.12); color: var(--green); }
+  .part { background: rgba(183,121,31,.14); color: var(--amber); }
+  .miss { background: rgba(192,57,43,.12); color: var(--red); }
+  .nv { background: rgba(11,11,11,.06); color: var(--ink2); }
+  .maj { background: rgba(183,121,31,.14); color: var(--amber); }
+  .min { background: rgba(42,120,214,.12); color: var(--blue); }
+  .crit { background: rgba(192,57,43,.12); color: var(--red); }
+  .score { font-size: 3rem; font-weight: 300; letter-spacing: -.03em; line-height: 1; }
+  ul, ol { margin: 0 0 10px; padding-left: 20px; }
+  li { margin: 3px 0; }
+  code { font-size: .86em; background: rgba(11,11,11,.05); border-radius: 4px; padding: 0 4px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .note { color: var(--ink2); font-size: .88rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Chennai monsoon site: audit</h1>
+  <p class="sub">https://chennai-monsoon.vercel.app, checked 30 Oct 2026 against the one-page project plan (20 Oct)</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">How this audit was done, and its limits</h3>
+    <ul>
+      <li><b>Not independent.</b> I built this site, so this is a self-audit. To offset that, I recomputed every core number in a fresh R script from the CSV the site publishes, without using the project's code.</li>
+      <li><b>Tested live:</b> all six pages, both pickers on the first page (all 16 month and decade combinations), the Predict date box (in season, out of season, 29 Feb, empty, a year past the maximum), all five history buttons, the cut-off slider at off-grid values, the three fit buttons, both Decision sliders at their ends, the CSV download and an unknown page address. No script errors occurred.</li>
+      <li><b>Not available:</b> only one of the two project PDFs (the one-page plan) and none of the screenshots were attached, so the second document could not be checked for contradictions. The R Shiny app was not re-tested in this round. The station's identity could not be confirmed with IMD directly.</li>
+    </ul>
+  </div>
+
+  <h2>1. Executive verdict</h2>
+  <div class="card verdict">
+    <p><b>Yes, it is suitable for the project, after a short round of fixes.</b> Every analysis in the plan is on the site, and every core statistic I recomputed matches to the decimal. I found no wrong formula and no critical error.</p>
+    <p>The problems are about communication and two modelling assumptions. The Predict page reads like a weather forecast. The 2.5 mm threshold and the "framework, not a warning system" caveat, both required by the plan, were lost when the text was shortened on 30 Oct. The heavy-rain chance assumes a wet day's size does not depend on the days before it, which the record does not fully support.</p>
+  </div>
+
+  <h2>2. Project understanding</h2>
+  <p>The plan asks one question in three parts. First, whether daily wet/dry occurrence at Nungambakkam in October to December (1991 to 2023, wet means 2.5 mm or more) behaves like a first-order Markov chain (H1 to H3). Second, whether that behaviour or the heavy-rain tail changed across three decades (H4, H5). Third, how to use the fitted model for a decision: a cost-loss flood-alert rule, with reservoir buffer days as the alternative if the chain reproduces dry spells.</p>
+  <p>The plan comes with:</p>
+  <ul>
+    <li>an audit before any modelling, with no interpolation;</li>
+    <li>extreme-value fits (lognormal, gamma, Weibull) chosen by AIC and QQ plots;</li>
+    <li>return periods with bootstrap intervals over whole seasons.</li>
+  </ul>
+  <p>The R Shiny app is named as a secondary deliverable that does not replace the report. This is a probability model of rainfall occurrence, not a storm forecasting system. The Predict page was added later, at Nilesh's request (29 Oct voice note), and is not in the plan.</p>
+
+  <h2>3. Overall rating: 8.1 out of 10</h2>
+  <div class="wrap"><table>
+    <thead><tr><th>Criterion</th><th>Weight</th><th>Score</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Alignment with objectives</td><td class="num">2.0</td><td class="num">1.7</td><td>All three aims are covered. The Predict page goes beyond the plan, and it does not say how it relates to the first-order chain under test.</td></tr>
+      <tr><td>Statistical correctness</td><td class="num">2.5</td><td class="num">2.1</td><td>H1, H2, H4, H5, ANOVA, the stationary share, the Weibull fit and the 10-year level all reproduce exactly. Points lost for the heavy-rain independence assumption, the Decision page ignoring the strong seasonal effect, and "no trend" being read from p = 0.26.</td></tr>
+      <tr><td>Completeness</td><td class="num">2.0</td><td class="num">1.8</td><td>All 14 components are present. Points lost because the first decade's 8 seasons (not 11) are not shown, and the buffer is presented even though H3 rejects the chain for dry spells.</td></tr>
+      <tr><td>Data reliability and method</td><td class="num">1.5</td><td class="num">1.2</td><td>A strong audit: duplicates, conflicts, silent months, neighbour gauges, ERA5 agreement, no interpolation. Points lost because the 2.5 mm rule is no longer on most pages, the station name is asserted rather than sourced, and "unlisted means dry" is not stated as a limitation.</td></tr>
+      <tr><td>Interface and charts</td><td class="num">1.0</td><td class="num">0.8</td><td>Clean, fast, readable charts with units and legends. Points lost for three models giving different numbers without explanation, and the US date format.</td></tr>
+      <tr><td>Uncertainty and limitations</td><td class="num">1.0</td><td class="num">0.5</td><td>Intervals and a leave-one-season-out check with false alarms are good. But the required caveat was removed, there is no limitations line on Predict, and "95% range" can be misread as a forecast range.</td></tr>
+      <tr><td><b>Total</b></td><td class="num"><b>10.0</b></td><td class="num"><b>8.1</b></td><td></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>4. Alignment audit</h2>
+  <div class="wrap"><table>
+    <thead><tr><th>Plan requirement</th><th>Status</th><th>Where, and what was checked</th></tr></thead>
+    <tbody>
+      <tr><td>Data audit, no interpolation</td><td><span class="tag full">Fully</span></td><td>Data page: 3 seasons dropped (1992, 1995, 1996, more than 9 missing days), 1,500 duplicates removed, 3 conflicting days and 19 neighbour-flagged days set to missing, 82.5% wet/dry agreement with ERA5, CSV download works.</td></tr>
+      <tr><td>Station identity confirmed</td><td><span class="tag part">Partly</span></td><td>Stated as "Nungambakkam (IMD)". The plan asks for confirmation with the source if it is unclear; the site does not say where the station name comes from.</td></tr>
+      <tr><td>Wet day 2.5 mm on every table and figure</td><td><span class="tag part">Partly</span></td><td>On the live site, "2.5 mm" appears only on the Data page and in the first page's sidebar, which is hidden on phones.</td></tr>
+      <tr><td>First-order transition matrix, P(W|W), P(W|D)</td><td><span class="tag full">Fully</span></td><td>62% and 16% from 2,688 day pairs. Recomputed: 0.623 and 0.164, 2,688 pairs.</td></tr>
+      <tr><td>Stationary wet share, mean spells</td><td><span class="tag full">Fully</span></td><td>30%, 2.6 and 6.1 days. Recomputed: 0.303, 2.65 and 6.10.</td></tr>
+      <tr><td>H1 chi-square, 2 by 2</td><td><span class="tag full">Fully</span></td><td>&chi;&sup2; = 565.6, 1 df. Recomputed: 565.60.</td></tr>
+      <tr><td>H2 chi-square, 2 df within yesterday</td><td><span class="tag full">Fully</span></td><td>&chi;&sup2; = 34.2, 2 df. Recomputed: 34.20. Rejected, so memory runs past one day.</td></tr>
+      <tr><td>H3 spell lengths, 1,000 simulations</td><td><span class="tag full">Fully</span></td><td>1,000 simulated records of 30 seasons each, a Monte Carlo p-value and 90% bands. Wet spells fit (p = 0.287); dry spells do not (p &lt; 0.001).</td></tr>
+      <tr><td>H4 decades, chi-square and CIs for p(W to W)</td><td><span class="tag full">Fully</span></td><td>&chi;&sup2; = 4.3, 4 df, p = 0.361, with 95% bars. Recomputed: 4.35.</td></tr>
+      <tr><td>H5 share above the 95th percentile, plus ANOVA</td><td><span class="tag full">Fully</span></td><td>101 mm cut-off, &chi;&sup2; = 0.6, p = 0.751; ANOVA F = 0.82, p = 0.441. Recomputed: 100.7 mm, 0.573, 0.821 and 0.441.</td></tr>
+      <tr><td>Lognormal, gamma and Weibull, AIC and QQ plot</td><td><span class="tag full">Fully</span></td><td>All three fits, the 2.5 mm truncation in the likelihood, a QQ plot of the upper half, and a fit switch that updates every table.</td></tr>
+      <tr><td>Return periods, T = 1/(&lambda;[1&minus;F])</td><td><span class="tag full">Fully</span></td><td>10-year day 243 mm. Recomputed with a truncated Weibull: 242.8 mm (&lambda; = 27.7 wet days per season).</td></tr>
+      <tr><td>Bootstrap by whole seasons</td><td><span class="tag full">Fully</span></td><td>400 season resamples for the return-level ranges. Rows past 30 years are greyed as extrapolation.</td></tr>
+      <tr><td>Cost-loss alert rule across C/L</td><td><span class="tag full">Fully</span></td><td>The slider from 0.002 to 0.06 updates the rule. Uses second-order states because H2 rejects first order, as the plan says.</td></tr>
+      <tr><td>"A framework, not a calibrated warning system"</td><td><span class="tag miss">Missing</span></td><td>Removed in the 30 Oct text cut; now only "C and L are assumed, not measured."</td></tr>
+      <tr><td>Reservoir buffer, if H3 fits</td><td><span class="tag part">Partly</span></td><td>Shown, although H3 rejects the chain for dry spells. The note points to the record column instead.</td></tr>
+      <tr><td>Effect sizes and intervals, not only p-values</td><td><span class="tag full">Fully</span></td><td>Point differences, 95% bars per decade, and ranges on every rate.</td></tr>
+      <tr><td>Interactive app: month, decade, spells, one season</td><td><span class="tag full">Fully</span></td><td>All 16 combinations update in 8 to 18 ms. "Simulate another" redraws a new season.</td></tr>
+      <tr><td>Analysis report and simulation code</td><td><span class="tag nv">Separate</span></td><td>Outside the web app, by the plan's own terms. Not scored.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>5. Statistical audit</h2>
+  <p><b>Correct and verified.</b> Using the published CSV and a script written from scratch, I recovered the following exactly:</p>
+  <ul>
+    <li>the transition counts and the first-order chain;</li>
+    <li>the H1, H2, H4 and H5 statistics and the ANOVA;</li>
+    <li>the 95th-percentile cut-off;</li>
+    <li>the truncated Weibull fit (shape 0.69, scale 18.8);</li>
+    <li>the 10-year return level;</li>
+    <li>the Decision page's heavy-rain chances (0.7% after two dry days, 3.4% after two wet days).</li>
+  </ul>
+  <p>Pairs that touch a missing day are excluded, as the plan says. The H3 simulation uses the same season length as the record, so spells cut at 1 October and 31 December are treated the same way in both.</p>
+  <p><b>Weak points.</b></p>
+  <ol>
+    <li><b>Heavy-rain chance by state.</b> The heavy-rain chance multiplies P(wet) by one fixed P(heavy | wet) = 5.25%. The record suggests heavy days cluster:
+      <ul>
+        <li>after two wet days, 4.8% of days were heavy, against the model's 3.4%;</li>
+        <li>after two dry days, 0.2%, against the model's 0.7%.</li>
+      </ul>
+      This is the plan's own method, but the gap should be stated. It is visible on the Decision chart as the "record" ticks.</li>
+    <li><b>Seasonality on the Decision page.</b> The Decision page uses a season-average chain. The Predict page's AIC table shows seasonality is the largest single effect (&Delta;AIC 195 from flat to season only). So "heavy rain tomorrow after two wet days" is 3.4% on Decision, but 3.0% on 15 Oct and 3.8% on 1 Nov on Predict.</li>
+    <li><b>"No trend" wording.</b> "No trend since 1991 (p = 0.258)" and the decade results are absence of evidence, with only 8, 11 and 11 seasons per decade. They should read "no evidence of a trend".</li>
+    <li><b>Buffer days.</b> The reservoir buffer comes from the first-order chain that H3 rejects for dry spells. The seasonal model on Predict does reproduce the longest dry spells (97% of real seasons inside its 90% range), so it would be the defensible source.</li>
+  </ol>
+
+  <h2>6. Prediction model audit</h2>
+  <ul>
+    <li><b>What it predicts:</b> the probability that a chosen day from 1 October to 31 December is wet (2.5 mm or more), and the probability it brings more than 101 mm.</li>
+    <li><b>Inputs:</b> a date, and optionally the wet/dry state of the two days before.</li>
+    <li><b>The model:</b> a logistic regression with three pairs of seasonal harmonics; for next day, also the last two days and a seasonal change in memory. It was chosen by AIC from five candidates, and the table is on the page.</li>
+    <li><b>Assumptions:</b> no trend over years, so the year makes no difference; a wet day's size is independent of the date and of the days before; wet-day sizes come from one Weibull fit.</li>
+  </ul>
+  <p><b>Is it meaningful?</b> Yes, as a probability model, and it is tested honestly. Each season is hidden in turn and forecast from the others (2,640 days). The page shows how often it is right:</p>
+  <div class="wrap"><table>
+    <thead><tr><th>At a 30% cut-off</th><th>Next day (last two days known)</th><th>Long range (last two days not known)</th></tr></thead>
+    <tbody>
+      <tr><td>Wet days caught</td><td>68%</td><td>66%</td></tr>
+      <tr><td>False alarms</td><td>41%</td><td>60%</td></tr>
+      <tr><td>Area under the ROC curve</td><td>0.79</td><td>0.65</td></tr>
+      <tr><td>Better than a flat guess (Brier skill)</td><td>24%</td><td>6%</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Where it overstates.</b></p>
+  <ul>
+    <li>The page title "Will it rain on the day?" and the default date of 15 Oct 2027 invite reading the long-range number as a forecast. For any date more than two days away, it is climatology: the average chance on that date across 30 seasons, only 6% better than a flat guess.</li>
+    <li>"95% range 26% to 35%" is a confidence interval for that average chance, not a range for the day's weather.</li>
+    <li>The page does not say that it cannot see storms, cyclones or forecasts; a depression in the Bay of Bengal changes everything.</li>
+    <li>The heavy-rain number inherits the independence assumption above.</li>
+  </ul>
+  <p>Rain and heavy rain are clearly separated, with two different numbers and labels.</p>
+
+  <h2>7. Red flags</h2>
+  <p class="note">No critical issues found: no wrong formula, no result that fails to reproduce. "Confirmed" means observed on the live site or recomputed. "Suspected" means it needs more data to settle.</p>
+  <div class="wrap"><table>
+    <thead><tr><th>#</th><th>Level</th><th>Problem and where</th><th>Evidence</th><th>Why it matters</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><span class="tag maj">Major</span></td><td>Predict reads as a weather forecast for a future date. (Predict, title and forecast card)</td><td>Confirmed. Default 15 Oct 2027; long-range skill only 6% over a flat guess, 60% false alarms at 30%.</td><td>The project is a probability model, not forecasting. A panel will ask what it means to "predict" a day a year away.</td><td>Title "How likely is rain on a given day?". Label the two modes "Climate chance" and "Next-day chance". Add one line: "Based on 30 seasons. It does not see storms or weather forecasts."</td></tr>
+      <tr><td>2</td><td><span class="tag maj">Major</span></td><td>The 2.5 mm threshold is missing from most pages. (Predict, Decades, Extremes, Decision; the first page on phones)</td><td>Confirmed. Page text search: "2.5 mm" only on Data, and in a sidebar hidden below 640 px.</td><td>The plan requires it on every table and figure; the threshold defines "wet".</td><td>Add "Wet: 2.5 mm or more" to the first caption on each page and to the Predict card, and keep it visible on phones.</td></tr>
+      <tr><td>3</td><td><span class="tag maj">Major</span></td><td>Required caveat removed. (Decision, alert rule)</td><td>Confirmed. Removed in the 30 Oct text cut.</td><td>The plan promises to "say plainly that this is a framework, not a calibrated warning system".</td><td>Restore: "A framework, not a calibrated warning system. C and L are assumed."</td></tr>
+      <tr><td>4</td><td><span class="tag maj">Major</span></td><td>P(heavy | wet) is held fixed across states and dates. (Decision, Predict)</td><td>Suspected effect, confirmed gap. Record: 4.8% of days heavy after two wet days against the model's 3.4%; after two dry days, 0.2% against 0.7%.</td><td>Heavy-rain risk after wet spells is likely understated, and that is the case the alert exists for.</td><td>State the assumption under the chart. Optional: fit P(heavy | wet, yesterday wet) by logistic regression and test it; use it if it is significant.</td></tr>
+      <tr><td>5</td><td><span class="tag maj">Major</span></td><td>Three models give different numbers with no explanation. (Wet and dry days, Predict, Decision)</td><td>Confirmed. "Heavy after two wet days" is 3.4% on Decision and 3.0% to 3.8% on Predict by date.</td><td>Looks inconsistent to an examiner; the link from the H2 result to the Predict model is not stated.</td><td>One sentence on Predict: "H2 showed one day of memory is not enough, so this model uses the last two days and lets the chances change through the season." On Decision: "Season average; see Predict for a given date."</td></tr>
+      <tr><td>6</td><td><span class="tag maj">Major</span></td><td>Buffer days are shown though H3 rejects the chain for dry spells. (Decision, buffer)</td><td>Confirmed. Dry spells p &lt; 0.001; the plan makes the buffer conditional on a good fit.</td><td>The recommended number rests on a model that failed its own test.</td><td>Use the record column as the headline, or switch to the seasonal model, which passes on the longest dry spells (97% inside). Say why.</td></tr>
+      <tr><td>7</td><td><span class="tag maj">Major</span></td><td>The first decade has 8 usable seasons, not 11. (Wet and dry days decade picker, Decades)</td><td>Confirmed. Recomputed seasons per decade: 8, 11, 11. The season count was removed from the first page's opening text on 30 Oct.</td><td>Unequal decades lower the power of H4 and H5; the plan expects 11 each.</td><td>Show "1991 to 2001 (8 seasons)" in the picker and on the Decades charts.</td></tr>
+      <tr><td>8</td><td><span class="tag min">Minor</span></td><td>"No trend since 1991" and "No clear change". (Predict, Decades)</td><td>Confirmed wording; p = 0.258, 0.361 and 0.751.</td><td>Non-significance is not proof of no change, given the limited power.</td><td>"No evidence of a trend (p = 0.26)".</td></tr>
+      <tr><td>9</td><td><span class="tag min">Minor</span></td><td>"95% range" is ambiguous. (Predict card)</td><td>Confirmed.</td><td>Read as a weather range rather than uncertainty in the estimate.</td><td>"95% confidence interval 26% to 35%".</td></tr>
+      <tr><td>10</td><td><span class="tag min">Minor</span></td><td>Station named without a source. (Data, top bar)</td><td>Confirmed.</td><td>The plan's first audit question.</td><td>"Station named in the Tamil Nadu file of the OpenCity dataset; ERA5 agreement 82.5%."</td></tr>
+      <tr><td>11</td><td><span class="tag min">Minor</span></td><td>"Unlisted day means dry" is not given as a limitation. (Data)</td><td>Suspected. The neighbour check only catches days with 10 mm or more nearby.</td><td>Unlisted days with 2.5 to 10 mm could be counted as dry, lowering P(wet).</td><td>Add it as a stated limitation.</td></tr>
+      <tr><td>12</td><td><span class="tag min">Minor</span></td><td>Date box. (Predict)</td><td>Confirmed. Shows 10/15/2027 (US format); 2035 is accepted despite the 2030 maximum; past dates are blocked.</td><td>Inconsistent with the "15 Oct" style elsewhere, and a missed chance to compare with real days.</td><td>Allow 1991 to 2023 dates and show what actually fell that day next to the model's chance.</td></tr>
+      <tr><td>13</td><td><span class="tag min">Minor</span></td><td>Simulation sizes differ between pages. (Wet and dry days, Predict, Decision)</td><td>Confirmed. 1,000 sets of 30 seasons on one page, 20,000 seasons on two others; the plan says 1,000.</td><td>Readers may think the plan was not followed.</td><td>Say "1,000 simulated 30-season records (H3)" in the caption.</td></tr>
+      <tr><td>14</td><td><span class="tag min">Minor</span></td><td>History labels can be read either way. (Predict)</td><td>Confirmed. "Wet, then dry".</td><td>Unclear which day is yesterday.</td><td>Add "(day before yesterday, yesterday)" under the heading.</td></tr>
+      <tr><td>15</td><td><span class="tag min">Minor</span></td><td>The Shiny app still has the older long text and an older picker layout.</td><td>Confirmed in source; not on the live site.</td><td>Two versions of the deliverable say different things.</td><td>Port the 30 Oct text and layout changes.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>8. Missing features</h2>
+  <ul>
+    <li>A plain limitations statement, required in spirit by the plan's caveats: rain gauge only, unlisted days read as dry, 30 seasons, no trend evidence, not a forecast.</li>
+    <li>The "framework, not a calibrated warning system" sentence (removed).</li>
+    <li>Season counts per decade.</li>
+    <li>Nothing else from the plan is missing. The analysis report and simulation code are separate deliverables and are not expected on the site.</li>
+  </ul>
+
+  <h2>9. Interface audit</h2>
+  <ul>
+    <li><b>Strong:</b> light, clean layout. Charts carry axis labels with units, legends and log scales where needed. Every interactive control updates instantly. Phone layout has no horizontal overflow. Tables are consistent. Extrapolated return periods are greyed.</li>
+    <li><b>Weak:</b>
+      <ul>
+        <li>The 30 Oct text cut went slightly too far: definitions, the threshold, the season count and one required caveat went with the padding.</li>
+        <li>Abbreviations such as "yest, yest2", "s, c" and "Brier skill" assume a statistics reader.</li>
+        <li>The first-page sidebar note disappears on phones.</li>
+        <li>The date box format differs from the rest of the site.</li>
+      </ul>
+    </li>
+    <li>Nothing on the site is decorative or off topic.</li>
+  </ul>
+
+  <h2>10. Improvement roadmap</h2>
+  <div class="wrap"><table>
+    <thead><tr><th>Change</th><th>Where</th><th>Priority</th><th>Need</th><th>Effort</th></tr></thead>
+    <tbody>
+      <tr><td>Reframe Predict: new title, "Climate chance" and "Next-day chance" labels, a limitations line, "95% confidence interval" (flags 1, 9)</td><td>Predict</td><td>High</td><td>Essential</td><td>Text only</td></tr>
+      <tr><td>Restore 2.5 mm on every page and the framework caveat (2, 3)</td><td>All pages, Decision</td><td>High</td><td>Essential</td><td>Text only</td></tr>
+      <tr><td>Explain how the three models relate (5)</td><td>Predict, Decision</td><td>High</td><td>Essential</td><td>Two sentences</td></tr>
+      <tr><td>Season counts per decade (7)</td><td>Wet and dry days, Decades</td><td>High</td><td>Essential</td><td>Small</td></tr>
+      <tr><td>Buffer from a model that passes H3, or lead with the record (6)</td><td>Decision</td><td>Medium</td><td>Essential</td><td>R rerun</td></tr>
+      <tr><td>State the heavy-rain assumption; optionally test P(heavy | wet, yesterday) (4)</td><td>Decision, Predict</td><td>Medium</td><td>Statement essential, model optional</td><td>Text, or R and rerun</td></tr>
+      <tr><td>"No evidence of a trend" wording (8)</td><td>Predict, Decades</td><td>Medium</td><td>Essential</td><td>Text only</td></tr>
+      <tr><td>Data limitations: station source, unlisted days (10, 11)</td><td>Data</td><td>Medium</td><td>Essential</td><td>Text only</td></tr>
+      <tr><td>Past dates with the real outcome shown (12)</td><td>Predict</td><td>Low</td><td>Optional</td><td>Small</td></tr>
+      <tr><td>Simulation size captions, history label hint (13, 14)</td><td>Several</td><td>Low</td><td>Optional</td><td>Text only</td></tr>
+      <tr><td>Bring the Shiny app in line with the site (15)</td><td>app/</td><td>Low</td><td>Optional</td><td>Small</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>11. Top five changes before the presentation</h2>
+  <ol>
+    <li>Reframe Predict as a probability model, not a forecast, with a limitations line and correct interval wording.</li>
+    <li>Put "Wet: 2.5 mm or more" back on every page, and restore "a framework, not a calibrated warning system".</li>
+    <li>Add the two sentences linking H2 to the Predict model, and Decision's season average to Predict's dates.</li>
+    <li>Show season counts per decade (8, 11, 11).</li>
+    <li>Base the buffer recommendation on a model that passes H3, or on the record, and say so.</li>
+  </ol>
+
+  <h2>12. Final verdict</h2>
+  <div class="card verdict">
+    <p><b>Suitable, but requires minor improvements.</b> The statistics are complete and correct against the plan, and they reproduce independently. Every flag above can be fixed in text or with one R rerun, in an afternoon.</p>
+    <p>If it were presented as it stands, the likely challenges are flags 1, 3 and 6:</p>
+    <ul>
+      <li>"Is this a forecast?"</li>
+      <li>"Where is your warning-system caveat?"</li>
+      <li>"Why recommend buffer days from a chain that failed H3?"</li>
+    </ul>
+  </div>
+</main>
+</body>
+</html>

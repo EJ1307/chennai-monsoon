@@ -80,6 +80,9 @@ chain_all <- fit_chain(ond)
 h2_all    <- test_h2(ond)
 best_fit  <- fits$fits[[fits$best_aic]]
 alert_tab <- alert_states(ond, chain_all, h2_all, best_fit, h5$q95, h2_all$p < 0.05)
+# the plain chain fails H3 for dry spells, so buffer days also come from the seasonal chain
+dry_max   <- pre$dry_max$curve
+dry_max$seasonal <- pre$outlook$dry_exceed$p[match(dry_max$k, pre$outlook$dry_exceed$k)]
 
 # 5. Predict ---------------------------------------------------------------------------------
 models    <- choose_models(model_rows(days))
@@ -117,8 +120,9 @@ results <- list(
     p_heavy_if_wet = alert_tab$p_heavy_if_wet[1],
     heavy_mm = h5$q95,
     second_order = h2_all$p < 0.05,
-    dry_max = pre$dry_max$curve,
-    dry_fit = pre$spells[[spell_key("Oct to Dec", "All years")]]$dry$p_mc >= 0.05
+    dry_max = dry_max,
+    dry_fit = pre$spells[[spell_key("Oct to Dec", "All years")]]$dry$p_mc >= 0.05,
+    dry_in_range = pre$outlook$table$obs_in_range[pre$outlook$table$key == "dry"]
   ),
   predict = list(
     forecasts = forecasts, by_day = observed_by_day(days),

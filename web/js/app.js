@@ -54,7 +54,7 @@
     const s = selection(state.months, state.decade);
     const years = state.decade === "All years" ? "1991 to 2023" : state.decade;
     const months = state.months === "Oct to Dec" ? "October to December" : state.months;
-    $("lede-wet").textContent = `${months}, ${years}. After a wet day, the next is wet ${Fmt.pct(s.p11[0])} of the time. After a dry day, ${Fmt.pct(s.p01[0])}.`;
+    $("lede-wet").textContent = `${months}, ${years} (${Fmt.plural(s.seasons.length, "season")}). After a wet day, the next is wet ${Fmt.pct(s.p11[0])} of the time. After a dry day, ${Fmt.pct(s.p01[0])}.`;
 
     const tile = (est, lo, hi, kind) => `<div class="tile ${kind}" style="--a:${est.toFixed(3)}"><div class="tile-p">${Fmt.num(est)}</div><div class="tile-ci">${Fmt.num(lo)} to ${Fmt.num(hi)}</div></div>`;
     const [a, alo, ahi] = s.p01, [b, blo, bhi] = s.p11;
@@ -63,7 +63,7 @@
       <div class="m-row">Dry yesterday</div>${tile(1 - a, 1 - ahi, 1 - alo, "dry")}${tile(a, alo, ahi, "wet")}
       <div class="m-row">Wet yesterday</div>${tile(1 - b, 1 - bhi, 1 - blo, "dry")}${tile(b, blo, bhi, "wet")}
     </div>
-    <p class="caption">${Fmt.num(s.n_pairs, 0)} pairs of days, 95% ranges.</p>
+    <p class="caption">Wet: 2.5 mm or more. ${Fmt.num(s.n_pairs, 0)} pairs of days, 95% ranges.</p>
     ${s.computed_in_browser ? '<p class="browser-note">Calculated in your browser.</p>' : ""}`;
 
     const h1 = s.h1, h2 = s.h2, pw = h2.p_wet;
@@ -123,14 +123,14 @@
   }
   function renderPredict() {
     const P = R.predict, any = FC.any, peak = any[P.peak_dos - 1];
-    $("lede-predict").textContent = `The chance of a wet day peaks at ${Fmt.pct(peak.p)} around ${dayMonth(new Date(Date.UTC(2027, 9, P.peak_dos)))}. Knowing the last two days moves it most.`;
+    $("lede-predict").textContent = `Chances from ${R.meta.n_used} seasons of records, not a weather forecast: the model cannot see storms or cyclones. They peak at ${Fmt.pct(peak.p)} around ${dayMonth(new Date(Date.UTC(2027, 9, P.peak_dos)))}.`;
     $("forecast-caption").textContent = `Logistic regression, ${P.k} harmonics, 95% band.`;
     renderDay();
     renderChecks();
     const tr = P.models.map((m) => `<tr class="${m.key === "season" || m.key === P.best_chain ? "best" : ""}"><td>${m.name}<div class="sub">${m.rhs}</div></td>
       <td>${m.df}</td><td>${Fmt.num(m.aic, 0)}</td><td>${m.delta_aic < 0.05 ? "lowest" : "+" + Fmt.num(m.delta_aic, 1)}</td><td>${m.lrt_p === null ? "" : Fmt.pText(m.lrt_p)}</td></tr>`).join("");
     $("model-table").innerHTML = `<table class="tbl"><thead><tr><th>Model</th><th>Terms</th><th>AIC</th><th>&Delta;AIC</th><th>Against the row above</th></tr></thead><tbody>${tr}</tbody></table>
-      <p class="note">Fitted to ${Fmt.num(P.n_rows, 0)} days. s, c: ${P.k} sine and cosine pairs. yest, yest2: the last two days. Adding a trend: ${Fmt.pText(P.trend_season.p)}.</p>`;
+      <p class="note">H2 showed one day of memory is not enough, so the chosen model uses the last two days and lets the chances change through the season. Fitted to ${Fmt.num(P.n_rows, 0)} days. s, c: ${P.k} sine and cosine pairs. yest, yest2: the last two days. Adding a trend: ${Fmt.pText(P.trend_season.p)}.</p>`;
   }
   // The forecast, its chart and the season outlook for the chosen day and history
   function renderDay() {
@@ -154,14 +154,15 @@
       `Wet on this date in ${o.wet} of ${o.n} seasons.`,
       memory,
       `If wet, about ${Fmt.num(o.near_median, 0)} mm; 1 in 10 over ${Fmt.num(o.near_q90, 0)} mm.`,
-      `No trend since 1991 (${Fmt.pText(P.trend_season.p)}).`,
+      `No evidence of a trend since 1991 (${Fmt.pText(P.trend_season.p)}).`,
     ];
     $("forecast-box").innerHTML = `<p class="forecast-date">${WEEKDAYS[k.t.getUTCDay()]} ${k.t.getUTCDate()} ${Fmt.dosDate(k.dos, k.year).split(" ").slice(1).join(" ")}</p>
+      <p class="mode">${h === "any" ? "Climate chance: the average for this date" : "Next-day chance: needs the last two days"}</p>
       <div class="facts two">
-        <div><div class="fact-v">${Fmt.pct(f.p)}</div><div class="fact-l">chance of a wet day</div></div>
+        <div><div class="fact-v">${Fmt.pct(f.p)}</div><div class="fact-l">chance of 2.5&nbsp;mm or more</div></div>
         <div><div class="fact-v">${Fmt.pct(f.p * P.p_heavy_if_wet, 1)}</div><div class="fact-l">chance of over ${Fmt.num(P.heavy_mm, 0)}&nbsp;mm</div></div>
       </div>
-      <p class="test-s">95% range ${Fmt.pct(f.lo)} to ${Fmt.pct(f.hi)}</p>
+      <p class="test-s">95% confidence interval ${Fmt.pct(f.lo)} to ${Fmt.pct(f.hi)}</p>
       <p class="why-head">Why</p>
       <ul class="why">${reasons.map((r) => `<li>${r}</li>`).join("")}</ul>`;
     chart();
@@ -198,7 +199,7 @@
     const sc = (key) => K.scores.find((s) => s.key === key);
     $("check-table").innerHTML = `<p class="rule">Next day: ${Fmt.pct(nd.pod)} of wet days caught, ${nd.far === null ? "no wet calls" : `${Fmt.pct(nd.far)} false alarms`}.</p>
       <table class="tbl compact"><thead><tr><th></th><th>Long range</th><th>Next day</th></tr></thead><tbody>
-        <tr><td>Wet days caught</td><td>${ls.caught}</td><td>${nd.caught}</td></tr>
+        <tr><td>Wet days caught (2.5 mm or more)</td><td>${ls.caught}</td><td>${nd.caught}</td></tr>
         <tr><td>False alarms</td><td>${ls.fa}</td><td>${nd.fa}</td></tr>
         <tr><td>Right on the day</td><td>${ls.right}</td><td>${nd.right}</td></tr>
         <tr><td>Better than a flat guess</td><td>${Fmt.pct(sc("season").skill)}</td><td>${Fmt.pct(sc("chain").skill)}</td></tr>
@@ -209,21 +210,27 @@
   }
 
   // Decades ---------------------------------------------------------------------------
+  const seasonsIn = (label) => {
+    const [from, to] = label.split(" to ").map(Number);
+    return R.decades.seasons.filter((x) => x.used && x.season >= from && x.season <= to).length;
+  };
   function renderDecades() {
     const { h4, h5, seasons } = R.decades;
     const change4 = h4.p < 0.05, change5 = h5.p < 0.05;
-    $("lede-decades").textContent = !change4 && !change5
-      ? `No clear change across three decades, in rain following rain (${Fmt.pText(h4.p)}) or in heavy days (${Fmt.pText(h5.p)}).`
-      : `Rain following rain: ${change4 ? "changed" : "no clear change"} (${Fmt.pText(h4.p)}). Heavy days: ${change5 ? "changed" : "no clear change"} (${Fmt.pText(h5.p)}).`;
+    const counts = R.meta.decades.map(seasonsIn).join(", ").replace(/, (\d+)$/, " and $1");
+    $("lede-decades").textContent = (!change4 && !change5
+      ? `No evidence of change across the decades, in rain following rain (${Fmt.pText(h4.p)}) or in heavy days (${Fmt.pText(h5.p)}).`
+      : `Rain following rain: ${change4 ? "changed" : "no evidence of change"} (${Fmt.pText(h4.p)}). Heavy days: ${change5 ? "changed" : "no evidence of change"} (${Fmt.pText(h5.p)}).`) +
+      ` Usable seasons per decade: ${counts}, so only large shifts would show.`;
     draw("chart-totals", (w) => Charts.totals(w, seasons, R.meta.decades));
     draw("chart-decade-chain", (w) => Charts.decadeChain(w, h4.per_decade, R.meta.decades));
     draw("chart-heavy", (w) => Charts.heavyShare(w, h5, R.meta.decades));
     $("h4-text").innerHTML = test("H4", "Has the chain changed across decades?",
-      change4 ? "Yes." : "No clear change.",
-      chi(h4.stat, h4.df, h4.p), `From dry ${Fmt.pText(h4.p_from_dry)}, from wet ${Fmt.pText(h4.p_from_wet)}.`);
+      change4 ? "Yes." : "No evidence of change.",
+      chi(h4.stat, h4.df, h4.p), `From dry ${Fmt.pText(h4.p_from_dry)}, from wet ${Fmt.pText(h4.p_from_wet)}. Wet: 2.5 mm or more.`);
     $("h5-text").innerHTML = test("H5", "Has the heavy tail changed?",
-      change5 ? "Yes." : `No clear change in days over ${Fmt.num(h5.q95, 0)} mm.`,
-      chi(h5.stat, h5.df, h5.p), `ANOVA on log amounts: F = ${Fmt.num(h5.anova_f)}, ${Fmt.pText(h5.anova_p)}.`);
+      change5 ? "Yes." : `No evidence of change in days over ${Fmt.num(h5.q95, 0)} mm.`,
+      chi(h5.stat, h5.df, h5.p), `ANOVA on log amounts: F = ${Fmt.num(h5.anova_f)}, ${Fmt.pText(h5.anova_p)}. Wet days (2.5 mm or more) only.`);
   }
 
   // Extremes --------------------------------------------------------------------------
@@ -241,8 +248,8 @@
     const rows = E.table.map((t) => `<tr class="${t.dist === f ? "best" : ""}"><td>${t.name}<div class="sub">${esc(t.params)}</div></td>
       <td>${Fmt.num(t.aic, 0)}</td><td>${t.delta_aic < 0.05 ? "lowest" : "+" + Fmt.num(t.delta_aic, 1)}</td><td>${Fmt.num(t.tail_error, 3)}</td></tr>`).join("");
     const note = E.best_aic === E.best_tail
-      ? `${fitName(E.best_aic)} wins on AIC and on the wettest 5%. ${Fmt.num(E.n, 0)} wet days.`
-      : `${fitName(E.best_aic)} wins on AIC, ${fitName(E.best_tail)} on the wettest 5%. ${Fmt.num(E.n, 0)} wet days.`;
+      ? `${fitName(E.best_aic)} wins on AIC and on the wettest 5%. ${Fmt.num(E.n, 0)} wet days (2.5 mm or more).`
+      : `${fitName(E.best_aic)} wins on AIC, ${fitName(E.best_tail)} on the wettest 5%. ${Fmt.num(E.n, 0)} wet days (2.5 mm or more).`;
     $("fit-table").innerHTML = `<table class="tbl"><thead><tr><th>Fit</th><th>AIC</th><th>&Delta;AIC</th><th>Tail error</th></tr></thead><tbody>${rows}</tbody></table><p class="note">${note}</p>`;
     const names = Object.fromEntries(E.table.map((t) => [t.dist, t.name]));
     $("qq-legend").innerHTML = `<span class="li"><span class="key key-dot wet"></span>${fitName(f)}</span>
@@ -261,8 +268,8 @@
     const D = R.decision, st = D.states;
     const lo = st.reduce((a, s) => (s.p_heavy < a.p_heavy ? s : a)), hi = st.reduce((a, s) => (s.p_heavy > a.p_heavy ? s : a));
     $("lede-decision").textContent = `Chance of over ${Fmt.num(D.heavy_mm, 0)} mm tomorrow: ${Fmt.pct(lo.p_heavy, 1)} ${lo.after}, ${Fmt.pct(hi.p_heavy, 1)} ${hi.after}.`;
-    $("alert-caption").textContent = "Bars: model. Ticks: record. Line: C/L.";
-    $("buffer-caption").textContent = `Grey: 20,000 simulated seasons. Orange: the ${R.meta.n_used} real ones.`;
+    $("alert-caption").textContent = "Bars: model. Ticks: record. Line: C/L. Wet: 2.5 mm or more. Assumes a wet day's size does not depend on the days before; the record ticks suggest heavy days cluster a little more than that.";
+    $("buffer-caption").textContent = `Grey: ${D.dry_fit ? "20,000 seasons from the chain" : "20,000 seasons from the seasonal model on Predict"}. Orange: the ${R.meta.n_used} real ones.`;
     renderAlert();
     renderBuffer();
   }
@@ -275,7 +282,7 @@
       : `Alert ${Fmt.joinAnd(on.map((s) => s.after))}.`;
     $("alert-rule").innerHTML = `<p class="rule">${rule}</p><table class="tbl compact"><tbody>${D.states.map((s) =>
       `<tr class="${s.p_heavy > cl ? "on" : ""}"><td>${s.state}</td><td>C/L below ${Fmt.num(s.p_heavy, 3)}</td></tr>`).join("")}</tbody></table>
-      <p class="note">C and L are assumed, not measured.</p>`;
+      <p class="note">A framework, not a calibrated warning system. C and L are assumed, not measured. Season average; Predict shows how the chance changes by date.</p>`;
     // the chart last, so it can grow to the height the rule card gives the row
     draw("chart-alert", (w, h) => Charts.alert(w, D.states, cl, h));
   }
@@ -283,12 +290,15 @@
   function renderBuffer() {
     const D = R.decision, risk = state.risk;
     $("risk-out").textContent = Fmt.pct(risk);
-    const kc = bufferDays(D.dry_max, "chain", risk), ko = bufferDays(D.dry_max, "observed", risk);
-    const rows = [0.05, 0.1, 0.2, 0.5].map((r) => `<tr><td>${Fmt.pct(r)} risk</td><td>${Fmt.plural(bufferDays(D.dry_max, "chain", r), "day")}</td><td>${Fmt.plural(bufferDays(D.dry_max, "observed", r), "day")}</td></tr>`).join("");
-    $("buffer-rule").innerHTML = `<p class="rule">Hold ${Fmt.plural(kc, "day")} of supply.</p>
-      <table class="tbl compact"><thead><tr><th>Risk</th><th>Chain</th><th>Record</th></tr></thead><tbody>${rows}</tbody></table>
-      <p class="note">Record alone: ${Fmt.plural(ko, "day")}. ${D.dry_fit ? "The chain fits dry spells (H3)." : "The chain misses long dry spells (H3), so check the record column."}</p>`;
-    draw("chart-buffer", (w, h) => Charts.buffer(w, D.dry_max, risk, kc, h));
+    // the plain chain is only used when it passes H3 for dry spells
+    const col = D.dry_fit ? "chain" : "seasonal";
+    const km = bufferDays(D.dry_max, col, risk), ko = bufferDays(D.dry_max, "observed", risk);
+    const rows = [0.05, 0.1, 0.2, 0.5].map((r) => `<tr><td>${Fmt.pct(r)} risk</td><td>${Fmt.plural(bufferDays(D.dry_max, col, r), "day")}</td><td>${Fmt.plural(bufferDays(D.dry_max, "observed", r), "day")}</td></tr>`).join("");
+    $("buffer-rule").innerHTML = `<p class="rule">Hold ${Fmt.plural(km, "day")} of supply.</p>
+      <table class="tbl compact"><thead><tr><th>Risk</th><th>Model</th><th>Record</th></tr></thead><tbody>${rows}</tbody></table>
+      <p class="note">Record alone: ${Fmt.plural(ko, "day")}. ${D.dry_fit ? "The chain fits dry spells (H3)."
+        : `The plain chain fails H3 for dry spells, so this uses the seasonal model, which puts the longest dry spell of ${Fmt.pct(D.dry_in_range)} of real seasons inside its 90% range.`}</p>`;
+    draw("chart-buffer", (w, h) => Charts.buffer(w, D.dry_max, risk, km, h, col));
   }
 
   // Data ------------------------------------------------------------------------------
@@ -296,7 +306,7 @@
     const f = R.audit.facts;
     const spec = (l, v) => `<div class="spec"><div class="spec-l">${l}</div><div class="spec-v">${v}</div></div>`;
     $("audit-rules").innerHTML = `<div class="specs">
-      ${spec("Station", "Nungambakkam (IMD)")}
+      ${spec("Station", "Nungambakkam, as named in the Tamil Nadu file")}
       ${spec("Season", "1 October to 31 December")}
       ${spec("Wet day", "2.5 mm or more")}
       ${spec("Gaps", "Never filled in")}
@@ -305,7 +315,7 @@
     const miss = Object.entries(R.audit.missing_by_decade).map(([k, v]) => `${k}: ${v}`).join("; ");
     const items = [
       `The Tamil Nadu file has Nungambakkam from ${Fmt.date(f.first_listed_day)} and matches the Chennai file on all ${Fmt.num(+f.city_file_days_compared, 0)} shared days, so it is used.`,
-      `Only rainy days are listed, so an unlisted day is read as dry.`,
+      `Only rainy days are listed, so an unlisted day is read as dry. Limitation: an unlisted day with 2.5 to 10 mm would be missed by the neighbour check.`,
       `${Fmt.num(+f.tn_exact_duplicates, 0)} duplicate rows removed. ${f.conflict_days} days with two values set to missing.`,
       `Silent at every gauge, set to missing: ${f.missing_months}.`,
       `${f.missing_days_neighbours} unlisted days where nearby gauges had 10 mm or more, set to missing.`,
@@ -396,6 +406,10 @@
 
     radios($("pick-months"), "months", R.meta.months, state.months, (v) => { state.months = v; renderWet(); });
     radios($("pick-decade"), "decade", ["All years", ...R.meta.decades], state.decade, (v) => { state.decade = v; renderWet(); });
+    $("pick-decade").querySelectorAll("label").forEach((l) => {
+      const v = l.querySelector("input").value;
+      if (v !== "All years") l.lastChild.textContent = `${v} (${seasonsIn(v)})`;
+    });
     segmented($("pick-fit"), "fit", R.extremes.table.map((t) => [t.dist, t.name]), state.fit, (v) => { state.fit = v; renderFit(); });
     $("resim").addEventListener("click", renderSeason);
     $("cl").addEventListener("input", (e) => { state.cl = +e.target.value; renderAlert(); });
@@ -403,7 +417,7 @@
     radios($("pick-history"), "history", ["any", ...Object.keys(R.predict.histories)], state.history, (v) => { state.history = v; renderDay(); });
     $("pick-history").querySelectorAll("label").forEach((l) => {
       const v = l.querySelector("input").value;
-      l.lastChild.textContent = v === "any" ? "Not known yet" : R.predict.histories[v];
+      l.lastChild.textContent = v === "any" ? "Not known" : R.predict.histories[v];
     });
     // the browser may restore a day or slider value from before a reload
     state.day = $("day").value || state.day;

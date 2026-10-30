@@ -210,6 +210,8 @@ season_outlook <- function(days, models, amount_fit, n_sim = 20000, seed = 2027)
        wet_hist = data.frame(k = k, sim = tabulate(wet_sim + 1, 93) / n_sim),
        wet_obs = unname(round(obs_wet(d), 1)),
        share_by_day = data.frame(dos = 1:92, sim = colMeans(sim$s)),
+       # P(longest dry spell > k), for the reservoir buffer
+       dry_exceed = data.frame(k = 0:92, p = vapply(0:92, function(i) mean(sim_dry > i), numeric(1))),
        n_sim = n_sim)
 }
 
